@@ -46,7 +46,7 @@ data ChannelVoice
     deriving (Eq, Show, Ord, Read, Generic)
 
 to7Bit :: Integral a => a -> Word8
-to7Bit = (.&. 0xEF) . fromIntegral
+to7Bit = (.&. 0x7F) . fromIntegral
 
 newtype Channel = Channel { getChannel :: Word8 }
     deriving (Eq, Show, Ord, Read)
