@@ -1,7 +1,7 @@
 name:                midi-simple
 version:             0.1.0.0
 synopsis:			 A simple and fast library for working with MIDI messages
--- description:
+description:         Please see README.rst
 homepage:            https://github.com/tsahyt/midi-simple#readme
 license:             LGPL-3
 license-file:        LICENSE
