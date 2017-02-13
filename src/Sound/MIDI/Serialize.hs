@@ -26,24 +26,31 @@ message = \case
 
 channelStatus :: Word8 -> Channel -> Builder
 channelStatus p c = word8 $ p .|. getChannel c
+{-# INLINE channelStatus #-}
 
 pitchbend :: Word16 -> Builder
 pitchbend v =
     let l = fromIntegral $ v .&. 0x0007
         m = fromIntegral $ v .&. 0x3f80
      in word8 l <> word8 m
+{-# INLINE pitchbend #-}
 
 pitch :: Pitch -> Builder
 pitch = word8 . getPitch
+{-# INLINE pitch #-}
 
 patch :: Patch -> Builder
 patch = word8 . getPatch
+{-# INLINE patch #-}
 
 velocity :: Velocity -> Builder
 velocity = word8 . getVelocity
+{-# INLINE velocity #-}
 
 touch :: Touch -> Builder
 touch = word8 . getTouch
+{-# INLINE touch #-}
 
 controller :: Controller -> Builder
 controller = word8 . getController
+{-# INLINE controller #-}
