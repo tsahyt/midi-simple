@@ -131,10 +131,10 @@ specCases =
       -- System Exclusive
     , SC "System Exclusive, short vendor"
         (SystemExclusive (Exclusive (VendorIdShort (to7Bit 8)) "000"))
-        "\xf0\x08000\xf7"
+        "\xf0\x08\x30\x30\x30\xf7"
     , SC "System Exclusive, long vendor"
         (SystemExclusive (Exclusive (VendorIdLong (to7Bit 8) (to7Bit 8)) "000"))
-        "\xf0\x00\x08\x08000\xf7"
+        "\xf0\x00\x08\x08\x30\x30\x30\xf7"
     ]
 
 {- Arbitrary instances for MidiMessage -}
