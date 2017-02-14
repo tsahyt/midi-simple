@@ -48,7 +48,10 @@ channelPressure = channelMessage 0x0D $ \c ->
 
 pitchBend :: Parser ChannelVoice
 pitchBend = channelMessage 0x0E $ \c ->
-    PitchBend (Channel c) <$> (go <$> take 2)
+    PitchBend (Channel c) <$> anyWord14
+
+anyWord14 :: Parser Word16
+anyWord14 = go <$> take 2
     where go x = let l = x `B.index` 0
                      m = x `B.index` 1
                   in unsafeShiftL (fromIntegral m) 7 + fromIntegral l
@@ -92,6 +95,25 @@ monoOn = channelMessage 0x0B $ \c ->
 polyOn :: Parser ChannelMode
 polyOn = channelMessage 0x0B $ \c ->
     pure (PolyOn (Channel c)) <* word8 0x7F <* word8 0x00
+
+systemCommon :: Parser SystemCommon
+systemCommon = choice [ mtcQuarter, songPosition, songSelect, tuneRequest
+                      , eox ]
+
+mtcQuarter :: Parser SystemCommon
+mtcQuarter = MTCQuarter <$> (word8 0xF1 *> anyWord8) 
+
+songPosition :: Parser SystemCommon
+songPosition = SongPosition <$> (word8 0xF2 *> (PositionPointer <$> anyWord14))
+
+songSelect :: Parser SystemCommon
+songSelect = SongSelect <$> (word8 0xF3 *> anyWord8)
+
+tuneRequest :: Parser SystemCommon
+tuneRequest = word8 0xF6 *> pure TuneRequest
+
+eox :: Parser SystemCommon
+eox = word8 0xF7 *> pure EOX
 
 -- | Parse a 'Pitch', no check for bit 7 is performed!
 pitch :: Parser Pitch

@@ -5,6 +5,7 @@ module Sound.MIDI.Types
     -- * Basic MIDI types
     ChannelVoice (..),
     ChannelMode (..),
+    SystemCommon (..),
 
     -- * Numeric MIDI data
     --
@@ -23,7 +24,10 @@ module Sound.MIDI.Types
     Touch (..),
     mkTouch,
     Controller (..),
-    mkController
+    mkController,
+    PositionPointer (..),
+    mkPositionPointer,
+    toClocks
 )
 where
 
@@ -48,6 +52,10 @@ data ChannelVoice
     | PitchBend !Channel !Word16
     deriving (Eq, Show, Ord, Read, Generic)
 
+-- | A type for channel mode messages. Mode messages determine how an instrument
+-- will receive all subsequent voice messages. This includes whether the
+-- receiver will play notes monophonically or polyphonically and whether it will
+-- respond only to data sent on one specific voice channel or all of them.
 data ChannelMode
     = AllSoundOff !Channel
     | ResetAllControllers !Channel
@@ -57,6 +65,13 @@ data ChannelMode
     | OmniOn !Channel
     | MonoOn !Channel !Word8
     | PolyOn !Channel
+
+data SystemCommon
+    = MTCQuarter !Word8
+    | SongPosition !PositionPointer
+    | SongSelect !Word8
+    | TuneRequest
+    | EOX
 
 to7Bit :: Integral a => a -> Word8
 to7Bit = (.&. 0x7F) . fromIntegral
@@ -96,3 +111,19 @@ newtype Patch = Patch { getPatch :: Word8 }
 
 mkPatch :: Integral a => a -> Patch 
 mkPatch = Patch . to7Bit
+
+newtype PositionPointer = PositionPointer { getPositionPointer :: Word16 }
+    deriving (Eq, Show, Ord, Read)
+
+to14Bit :: Integral a => a -> Word16
+to14Bit = (.&. 0x3FFF) . fromIntegral
+
+mkPositionPointer :: Integral a => a -> PositionPointer
+mkPositionPointer = PositionPointer . to14Bit
+
+-- | Convert a 'PositionPointer', used to indicate song position, to the MIDI
+-- clock. Song Position Pointer is always multiplied by 6 times the MIDI clocks
+-- (F8H). Thus the smallest Song Position change is 6 MIDI clocks, or 1/16 note.
+toClocks :: PositionPointer -> Int
+toClocks = (* 6) . fromIntegral . getPositionPointer
+{-# INLINEABLE toClocks #-}

@@ -22,18 +22,18 @@ channelVoice = \case
     ChannelPressure c t -> 
         channelStatus 0xD0 c <> touch t
     PitchBend c v -> 
-        channelStatus 0xE0 c <> pitchbend v
+        channelStatus 0xE0 c <> word14 v
 
 channelStatus :: Word8 -> Channel -> Builder
 channelStatus p c = word8 $ p .|. getChannel c
 {-# INLINE channelStatus #-}
 
-pitchbend :: Word16 -> Builder
-pitchbend v =
+word14 :: Word16 -> Builder
+word14 v =
     let l = fromIntegral $ v .&. 0x0007
         m = fromIntegral $ v .&. 0x3f80
      in word8 l <> word8 m
-{-# INLINE pitchbend #-}
+{-# INLINE word14 #-}
 
 channelMode :: ChannelMode -> Builder
 channelMode = \case
@@ -56,6 +56,14 @@ channelMode = \case
 
     where bool' True  = word8 0x7F
           bool' False = word8 0x00
+
+systemCommon :: SystemCommon -> Builder
+systemCommon = \case
+    MTCQuarter v -> word8 0xF1 <> word8 v
+    SongPosition pp -> word8 0xF2 <> word14 (getPositionPointer pp)
+    SongSelect x -> word8 0xF3 <> word8 x
+    TuneRequest -> word8 0xF6
+    EOX -> word8 0xF7
 
 pitch :: Pitch -> Builder
 pitch = word8 . getPitch
