@@ -2,6 +2,9 @@
 {-# OPTIONS_GHC -funbox-strict-fields #-}
 module Sound.MIDI.Types
 (
+    -- * MIDI messages
+    MidiMessage (..),
+
     -- * Basic MIDI types
     ChannelVoice (..),
     ChannelMode (..),
@@ -40,6 +43,27 @@ import Data.ByteString (ByteString)
 import Data.Bits
 import GHC.Generics
 
+-- | A data type representing midi messages. Messages can be categorized into 5
+-- subcategories
+--
+--     1. __Channel Voice Messages__. Start, stop, or alter sounds being played.
+--     2. __Channel Mode Messages__. Control messages affecting the entire
+--     channel.
+--     3. __System Real-Time Messages__. Used by sequencers to regulate and
+--     synchronize timing.
+--     4. __System Common Messages__. Used for song selection, position
+--     pointers, etc.
+--     5. __System Exclusive Messages__. Used for device-specific extensions to
+--     the MIDI protocol.
+--
+data MidiMessage
+    = ChannelVoice ChannelVoice
+    | ChannelMode ChannelMode
+    | SystemCommon SystemCommon
+    | SystemRealTime SystemRealTime
+    | SystemExclusive SystemExclusive
+    deriving (Eq, Show, Ord, Read, Generic)
+
 -- | Type holding channel voice messages. Channel Voice messages transmit
 -- real-time performance data over a single channel. Examples include "note-on"
 -- messages which contain a MIDI note number that specifies the note's pitch, a
@@ -72,6 +96,8 @@ data ChannelMode
     | PolyOn !Channel
     deriving (Eq, Show, Ord, Read, Generic)
 
+-- | A type for system common messages. System common messages are intended for
+-- all receivers in the system.
 data SystemCommon
     = MTCQuarter !Word8
     | SongPosition !PositionPointer
@@ -80,6 +106,14 @@ data SystemCommon
     | EOX
     deriving (Eq, Show, Ord, Read, Generic)
 
+-- | System real time messages. The MIDI System Real Time messages are used to
+-- synchronize all of the MIDI clock-based equipment within a system, such as
+-- sequencers and drum machines. Most of the System Real Time messages are
+-- normally ignored by keyboard instruments and synthesizers. To help ensure
+-- accurate timing, System Real Time messages are given priority over other
+-- messages, and these single-byte messages may occur anywhere in the data
+-- stream (a Real Time message may appear between the status byte and data byte
+-- of some other MIDI message).
 data SystemRealTime
     = TimingClock
     | Start
@@ -89,10 +123,24 @@ data SystemRealTime
     | SystemReset
     deriving (Eq, Show, Ord, Read, Generic)
 
+-- | System exclusive messages. System Exclusive messages may be used to send
+-- data such as patch parameters or sample data between MIDI devices.
+-- Manufacturers of MIDI equipment may define their own formats for System
+-- Exclusive data. Manufacturers are granted unique identification (ID) numbers
+-- by the MMA or the JMSC, and the manufacturer ID number is included as part of
+-- the System Exclusive message. See 'VendorId'.
+--
+-- The representation used here is deliberately generic. Special sets of system
+-- exclusive messages can be implemented on top of this type.
 data SystemExclusive
-    = SystemExclusive !VendorId ByteString
+    = Exclusive !VendorId ByteString
     deriving (Eq, Show, Ord, Read, Generic)
 
+-- | Data type encapsulating vendor ID numbers as used in 'SystemExclusive'.
+-- They have one of two possible formats:
+--
+-- 1. A one byte ID (represented by 'VendorIdShort')
+-- 2. A three byte ID, which must begin with @0x00@. ('VendorIdLong')
 data VendorId
     = VendorIdShort !Word8
     | VendorIdLong  !Word8 !Word8

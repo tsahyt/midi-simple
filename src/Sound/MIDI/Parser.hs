@@ -10,6 +10,14 @@ import qualified Data.ByteString as B
 
 import Prelude hiding (take)
 
+midiMessage :: Parser MidiMessage
+midiMessage = choice 
+    [ ChannelVoice <$> channelVoice
+    , ChannelMode <$> channelMode
+    , SystemCommon <$> systemCommon
+    , SystemRealTime <$> systemRealTime
+    , SystemExclusive <$> systemExclusive ]
+
 channelVoice :: Parser ChannelVoice
 channelVoice = choice [ noteOff, noteOn, aftertouch, controlChange, patchChange
                       , channelPressure, pitchBend ]
@@ -125,7 +133,7 @@ systemRealTime = choice
     , word8 0xFF *> pure SystemReset ]
 
 systemExclusive :: Parser SystemExclusive
-systemExclusive = SystemExclusive
+systemExclusive = Exclusive
     <$> (word8 0xF0 *> vendorId) 
     <*> takeTill (`testBit` 7)
 

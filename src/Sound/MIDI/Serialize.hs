@@ -7,6 +7,14 @@ import Data.Monoid
 import Data.Word
 import Data.Bits
 
+midiMessage :: MidiMessage -> Builder
+midiMessage = \case
+    ChannelVoice x    -> channelVoice x
+    ChannelMode x     -> channelMode x
+    SystemCommon x    -> systemCommon x
+    SystemRealTime x  -> systemRealTime x
+    SystemExclusive x -> systemExclusive x
+
 channelVoice :: ChannelVoice -> Builder
 channelVoice = \case
     NoteOff c p v -> 
@@ -75,7 +83,7 @@ systemRealTime = \case
     SystemReset -> word8 0xFF
 
 systemExclusive :: SystemExclusive -> Builder
-systemExclusive (SystemExclusive v x) =
+systemExclusive (Exclusive v x) =
     word8 0xF0 <> vendorId v <> byteString x <> systemCommon EOX
 
 vendorId :: VendorId -> Builder
