@@ -16,7 +16,10 @@ module Sound.MIDI
     -- | Top level parsing and serializing tools are exposed here. For
     -- fine-grained access, see "Sound.MIDI.Parser" and "Sound.MIDI.Serialize".
     midiParser,
-    midiSerializer
+    midiSerializer,
+
+    -- * Re-exports
+    module Sound.MIDI.Types
 )
 where
 
