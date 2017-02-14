@@ -263,30 +263,35 @@ pattern Hold2 = Controller 69
 pattern SoundController1 :: Controller
 pattern SoundController1 = Controller 70
 
+-- | Synonym for 'SoundController1'
 pattern SoundVariation :: Controller
 pattern SoundVariation = Controller 70
 
 pattern SoundController2 :: Controller
 pattern SoundController2 = Controller 71
 
+-- | Synonym for 'SoundController2'
 pattern Timbre :: Controller
 pattern Timbre = Controller 71
 
 pattern SoundController3 :: Controller
 pattern SoundController3 = Controller 72
 
+-- | Synonym for 'SoundController3'
 pattern ReleaseTime :: Controller
 pattern ReleaseTime = Controller 72
 
 pattern SoundController4 :: Controller
 pattern SoundController4 = Controller 73
 
+-- | Synonym for 'SoundController4'
 pattern AttackTime :: Controller
 pattern AttackTime = Controller 73
 
 pattern SoundController5 :: Controller
 pattern SoundController5 = Controller 74
 
+-- | Synonym for 'SoundController5'
 pattern Brightness :: Controller
 pattern Brightness = Controller 74
 
@@ -323,30 +328,35 @@ pattern PortamentoControl = Controller 84
 pattern Effects1Depth :: Controller
 pattern Effects1Depth = Controller 91
 
+-- | Synonym for 'Effects1Depth'
 pattern ExternalEffectsDepth :: Controller
 pattern ExternalEffectsDepth = Controller 91
 
 pattern Effects2Depth :: Controller
 pattern Effects2Depth = Controller 92
 
+-- | Synonym for 'Effects2Depth'
 pattern TremoloDepth :: Controller
 pattern TremoloDepth = Controller 92
 
 pattern Effects3Depth :: Controller
 pattern Effects3Depth = Controller 93
 
+-- | Synonym for 'Effects3Depth'
 pattern ChorusDepth :: Controller
 pattern ChorusDepth = Controller 93
 
 pattern Effects4Depth :: Controller
 pattern Effects4Depth = Controller 94
 
+-- | Synonym for 'Effects4Depth'
 pattern CelesteDepth :: Controller
 pattern CelesteDepth = Controller 94
 
 pattern Effects5Depth :: Controller
 pattern Effects5Depth = Controller 95
 
+-- | Synonym for 'Effects5Depth'
 pattern PhaserDepth :: Controller
 pattern PhaserDepth = Controller 95
 

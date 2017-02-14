@@ -1,4 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
+-- | Parsers for 'MidiMessage' and its components, implemented as Attoparsec
+-- parsers. See "Data.Attoparsec.ByteString" for how to run them. In most common
+-- use cases, the 'decodeMidi' function in "Sound.MIDI" should suffice.
 module Sound.MIDI.Parser where
 
 import Control.Applicative

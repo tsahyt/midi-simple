@@ -11,6 +11,9 @@ module Sound.MIDI
     decodeMidi1,
 
     -- * Parser and Serializer
+    --
+    -- | Top level parsing and serializing tools are exposed here. For
+    -- fine-grained access, see "Sound.MIDI.Parser" and "Sound.MIDI.Serialize".
     midiParser,
     midiSerializer
 )

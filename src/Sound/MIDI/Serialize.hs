@@ -1,4 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
+-- | ByteString builders for MIDI messages and their components. For information
+-- on how to use the resulting 'Builder's, see "Data.ByteString.Builder". The
+-- type signatures in this module should serve as sufficient documentation. For
+-- most use cases the 'encodeMidi' function in "Sound.MIDI" should suffice.
 module Sound.MIDI.Serialize where
 
 import Sound.MIDI.Types
@@ -36,6 +40,8 @@ channelStatus :: Word8 -> Channel -> Builder
 channelStatus p c = word8 $ p .|. getChannel c
 {-# INLINE channelStatus #-}
 
+-- | Build a 14 bit word as it is used in the MIDI specifications, i.e. it is
+-- built as two 8 bit words with the 7th bit not set respectively.
 word14 :: Word16 -> Builder
 word14 v =
     let l = fromIntegral $ v .&. 0x0007
