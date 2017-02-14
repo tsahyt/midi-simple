@@ -37,8 +37,18 @@ executable midi-dump
   else
       buildable:       False
   hs-source-dirs:      example
-  ghc-options:         -Wall
+  ghc-options:         -Wall -O2
   main-is:             MidiDump.hs
+  default-language:    Haskell2010
+
+executable re-encode
+  if flag(examples)
+      build-depends:   base >= 4.7 && < 5, midi-simple, bytestring
+  else
+      buildable:       False
+  hs-source-dirs:      example
+  ghc-options:         -Wall -O2
+  main-is:             Reencode.hs
   default-language:    Haskell2010
 
 test-suite midi-tests
