@@ -8,7 +8,11 @@ module Sound.MIDI
 
     -- * Decoding
     decodeMidi,
-    decodeMidi1
+    decodeMidi1,
+
+    -- * Parser and Serializer
+    midiParser,
+    midiSerializer
 )
 where
 
@@ -16,7 +20,7 @@ import Control.Applicative
 import Data.Functor.Identity
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import Data.ByteString.Builder (toLazyByteString)
+import Data.ByteString.Builder (toLazyByteString, Builder)
 import qualified Data.Attoparsec.ByteString as A
 
 import Sound.MIDI.Types
@@ -48,3 +52,9 @@ decodeMidi = A.parseOnly (P.skipToStatus *> some P.midiMessage)
 -- incomplete data at the beginning will be skipped!
 decodeMidi1 :: BS.ByteString -> Either String MidiMessage
 decodeMidi1 = A.parseOnly (P.skipToStatus *> P.midiMessage)
+
+midiParser :: A.Parser MidiMessage
+midiParser = P.midiMessage
+
+midiSerializer :: MidiMessage -> Builder
+midiSerializer = S.midiMessage
