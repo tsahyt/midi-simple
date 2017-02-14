@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
-  exposed-modules:
+  exposed-modules:     Sound.MIDI
                        Sound.MIDI.Types
                        Sound.MIDI.Parser
                        Sound.MIDI.Serialize

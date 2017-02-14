@@ -12,11 +12,14 @@ import Prelude hiding (take)
 
 midiMessage :: Parser MidiMessage
 midiMessage = choice 
-    [ ChannelVoice <$> channelVoice
-    , ChannelMode <$> channelMode
+    [ ChannelMode <$> channelMode
+    , ChannelVoice <$> channelVoice
     , SystemCommon <$> systemCommon
     , SystemRealTime <$> systemRealTime
     , SystemExclusive <$> systemExclusive ]
+
+skipToStatus :: Parser ()
+skipToStatus = skipWhile (not . flip testBit 7)
 
 channelVoice :: Parser ChannelVoice
 channelVoice = choice [ noteOff, noteOn, aftertouch, controlChange, patchChange
