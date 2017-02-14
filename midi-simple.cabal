@@ -46,7 +46,8 @@ test-suite midi-tests
   hs-source-dirs:      test
   main-is:             Test.hs
   build-depends:       base >= 4.7 && < 5, midi-simple, tasty, tasty-hspec,
-                       tasty-quickcheck, QuickCheck, generic-random, bytestring
+                       tasty-quickcheck, QuickCheck, generic-random, bytestring,
+                       hspec-attoparsec, hspec
 
 source-repository head
   type:     git

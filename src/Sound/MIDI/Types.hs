@@ -38,6 +38,7 @@ module Sound.MIDI.Types
     toClocks,
 
     -- * Helper functions
+    to4Bit,
     to7Bit,
     to14Bit
 )
@@ -154,6 +155,9 @@ data VendorId
 to7Bit :: Integral a => a -> Word8
 to7Bit = (.&. 0x7F) . fromIntegral
 
+to4Bit :: Integral a => a -> Word8
+to4Bit = (.&. 0x0F) . fromIntegral
+
 newtype Channel = Channel { getChannel :: Word8 }
     deriving (Eq, Show, Ord, Read)
 
@@ -175,7 +179,7 @@ newtype Velocity = Velocity { getVelocity :: Word8 }
     deriving (Eq, Show, Ord, Read)
 
 mkVelocity :: Integral a => a -> Velocity 
-mkVelocity = Velocity . to7Bit
+mkVelocity = Velocity . to4Bit
 
 newtype Touch = Touch { getTouch :: Word8 }
     deriving (Eq, Show, Ord, Read)

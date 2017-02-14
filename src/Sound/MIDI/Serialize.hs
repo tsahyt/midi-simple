@@ -44,29 +44,29 @@ channelStatus p c = word8 $ p .|. getChannel c
 -- built as two 8 bit words with the 7th bit not set respectively.
 word14 :: Word16 -> Builder
 word14 v =
-    let l = fromIntegral $ v .&. 0x0007
-        m = fromIntegral $ v .&. 0x3f80
+    let l = fromIntegral $ v .&. 0x003f
+        m = fromIntegral $ unsafeShiftR (v .&. 0x3f80) 7
      in word8 l <> word8 m
 {-# INLINE word14 #-}
 
 channelMode :: ChannelMode -> Builder
 channelMode = \case
     AllSoundOff c ->
-        channelStatus 0x0B c <> word8 0x78 <> word8 0x00
+        channelStatus 0xB0 c <> word8 0x78 <> word8 0x00
     ResetAllControllers c ->
-        channelStatus 0x0B c <> word8 0x79 <> word8 0x00
+        channelStatus 0xB0 c <> word8 0x79 <> word8 0x00
     LocalControl c b ->
-        channelStatus 0x0B c <> word8 0x7A <> bool' b
+        channelStatus 0xB0 c <> word8 0x7A <> bool' b
     AllNotesOff c ->
-        channelStatus 0x0B c <> word8 0x7B <> word8 0x00
+        channelStatus 0xB0 c <> word8 0x7B <> word8 0x00
     OmniOff c ->
-        channelStatus 0x0B c <> word8 0x7C <> word8 0x00
+        channelStatus 0xB0 c <> word8 0x7C <> word8 0x00
     OmniOn c ->
-        channelStatus 0x0B c <> word8 0x7D <> word8 0x00
+        channelStatus 0xB0 c <> word8 0x7D <> word8 0x00
     MonoOn c n ->
-        channelStatus 0x0B c <> word8 0x7E <> word8 n
+        channelStatus 0xB0 c <> word8 0x7E <> word8 n
     PolyOn c ->
-        channelStatus 0x0B c <> word8 0x7F <> word8 0x00
+        channelStatus 0xB0 c <> word8 0x7F <> word8 0x00
 
     where bool' True  = word8 0x7F
           bool' False = word8 0x00

@@ -1,23 +1,143 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Main where
 
 import qualified Data.ByteString as B
 import Data.Word
 import Test.Tasty
 import Test.Tasty.QuickCheck
+import Test.Tasty.Hspec
 import Test.QuickCheck
+import Test.Hspec
+import Test.Hspec.Attoparsec
 
 import Sound.MIDI
 import Sound.MIDI.Types
 
 main :: IO ()
-main = defaultMain tests
+main = do
+    st <- specTests
+    defaultMain (testGroup "Tests" [ tests, st ])
 
 tests :: TestTree
-tests = testProperty "parse . serialize == id" $
-    \(msg :: MidiMessage) ->
-        decodeMidi1 (encodeMidi1' msg) == Right msg
+tests = testGroup "QuickCheck"
+    [ testProperty "parse . serialize == id" $
+          \(msg :: MidiMessage) ->
+              decodeMidi1 (encodeMidi1' msg) == Right msg
+    , testProperty "parse . serialize == id (long)" $
+          \(msg :: NonEmptyList MidiMessage) ->
+              let msg' = getNonEmpty msg
+               in decodeMidi (encodeMidi' msg') == Right msg'
+    ]
 
+specTests :: IO TestTree
+specTests = testSpec "Hspec" . sequence_ . map go $ specCases
+    where go (SC n msg str) =
+              describe n $ do
+                  it "parses" $ decodeMidi1 str `shouldParse` msg
+                  
+                  it "serializes" $ encodeMidi1' msg `shouldBe` str
+
+data SpecCase = SC String MidiMessage B.ByteString
+
+specCases :: [SpecCase]
+specCases = 
+    [ -- Channel Voice tests
+      SC "Note Off"
+        (ChannelVoice (NoteOff (Channel 0) (Pitch 60) (Velocity 127)))
+        "\x80\x3c\x7f"
+    , SC "Note On"
+        (ChannelVoice (NoteOn (Channel 0) (Pitch 60) (Velocity 0)))
+        "\x90\x3c\x00"
+    , SC "Aftertouch"
+        (ChannelVoice (Aftertouch (Channel 1) (Pitch 0) (Touch 64)))
+        "\xa1\x00\x40"
+    , SC "Control Change"
+        (ChannelVoice (ControlChange (Channel 0) (Controller 4) (to7Bit 0)))
+        "\xb0\x04\x00"
+    , SC "Patch Change"
+        (ChannelVoice (PatchChange (Channel 4) (Patch 8)))
+        "\xc4\x08"
+    , SC "Channel Pressure"
+        (ChannelVoice (ChannelPressure (Channel 4) (Touch 64)))
+        "\xd4\x40"
+    , SC "Pitch Bend"
+        (ChannelVoice (PitchBend (Channel 0) (to14Bit 8)))
+        "\xe0\x08\x00"
+      -- Channel Mode test
+    , SC "All Sound Off"
+        (ChannelMode (AllSoundOff (Channel 0)))
+        "\xb0\x78\x00"
+    , SC "Reset Controllers"
+        (ChannelMode (ResetAllControllers (Channel 0)))
+        "\xb0\x79\x00"
+    , SC "LocalControl True"
+        (ChannelMode (LocalControl (Channel 1) True))
+        "\xb1\x7a\x7f"
+    , SC "LocalControl False"
+        (ChannelMode (LocalControl (Channel 1) False))
+        "\xb1\x7a\x00"
+    , SC "All Notes Off"
+        (ChannelMode (AllNotesOff (Channel 0)))
+        "\xb0\x7b\x00"
+    , SC "Omni Off"
+        (ChannelMode (OmniOff (Channel 0)))
+        "\xb0\x7c\x00"
+    , SC "Omni On"
+        (ChannelMode (OmniOn (Channel 0)))
+        "\xb0\x7d\x00"
+    , SC "Mono On"
+        (ChannelMode (MonoOn (Channel 0) (to7Bit 3)))
+        "\xb0\x7e\x03"
+    , SC "Poly On"
+        (ChannelMode (PolyOn (Channel 0)))
+        "\xb0\x7f\x00"
+      -- System Common
+    , SC "MTC Quarter"
+        (SystemCommon (MTCQuarter (to7Bit 0)))
+        "\xf1\x00"
+    , SC "Song Position"
+        (SystemCommon (SongPosition (mkPositionPointer 8)))
+        "\xf2\x08\x00"
+    , SC "Song Select"
+        (SystemCommon (SongSelect (to7Bit 0)))
+        "\xf3\x00"
+    , SC "Tune Request"
+        (SystemCommon TuneRequest)
+        "\xf6"
+    , SC "EOX"
+        (SystemCommon EOX)
+        "\xf7"
+      -- System Real Time
+    , SC "Timing Clock"
+        (SystemRealTime TimingClock)
+        "\xf8"
+    , SC "Start"
+        (SystemRealTime Start)
+        "\xfa"
+    , SC "Continue"
+        (SystemRealTime Continue)
+        "\xfb"
+    , SC "Stop"
+        (SystemRealTime Stop)
+        "\xfc"
+    , SC "Active Sensing"
+        (SystemRealTime ActiveSensing)
+        "\xfe"
+    , SC "System Reset"
+        (SystemRealTime SystemReset)
+        "\xff"
+      -- System Exclusive
+    , SC "System Exclusive, short vendor"
+        (SystemExclusive (Exclusive (VendorIdShort (to7Bit 8)) "000"))
+        "\xf0\x08000\xf7"
+    , SC "System Exclusive, long vendor"
+        (SystemExclusive (Exclusive (VendorIdLong (to7Bit 8) (to7Bit 8)) "000"))
+        "\xf0\x00\x08\x08000\xf7"
+    ]
+
+{- Arbitrary instances for MidiMessage -}
 instance Arbitrary MidiMessage where
     arbitrary = oneof [ ChannelVoice    <$> arbitrary
                       , ChannelMode     <$> arbitrary
@@ -56,7 +176,8 @@ instance Arbitrary SystemCommon where
 
 instance Arbitrary SystemExclusive where
     arbitrary = Exclusive <$> arbitrary <*> 
-        (B.pack . map to7Bit <$> (arbitrary :: Gen [Word8]))
+        (B.pack . map to7Bit . getNonEmpty 
+            <$> (arbitrary :: Gen (NonEmptyList Word8)))
 
 instance Arbitrary SystemRealTime where
     arbitrary = elements [ TimingClock, Start, Continue, Stop
