@@ -7,6 +7,9 @@ module Sound.MIDI.Types
     ChannelMode (..),
     SystemCommon (..),
     SystemRealTime (..),
+    SystemExclusive (..),
+
+    VendorId (..),
 
     -- * Numeric MIDI data
     --
@@ -33,6 +36,7 @@ module Sound.MIDI.Types
 where
 
 import Data.Word
+import Data.ByteString (ByteString)
 import Data.Bits
 import GHC.Generics
 
@@ -83,6 +87,15 @@ data SystemRealTime
     | Stop
     | ActiveSensing
     | SystemReset
+    deriving (Eq, Show, Ord, Read, Generic)
+
+data SystemExclusive
+    = SystemExclusive !VendorId ByteString
+    deriving (Eq, Show, Ord, Read, Generic)
+
+data VendorId
+    = VendorIdShort !Word8
+    | VendorIdLong  !Word8 !Word8
     deriving (Eq, Show, Ord, Read, Generic)
 
 to7Bit :: Integral a => a -> Word8

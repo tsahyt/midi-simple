@@ -74,6 +74,14 @@ systemRealTime = \case
     ActiveSensing -> word8 0xFE
     SystemReset -> word8 0xFF
 
+systemExclusive :: SystemExclusive -> Builder
+systemExclusive (SystemExclusive v x) =
+    word8 0xF0 <> vendorId v <> byteString x <> systemCommon EOX
+
+vendorId :: VendorId -> Builder
+vendorId (VendorIdShort x)  = word8 x
+vendorId (VendorIdLong a b) = word8 0x00 <> word8 a <> word8 b
+
 pitch :: Pitch -> Builder
 pitch = word8 . getPitch
 {-# INLINE pitch #-}

@@ -124,6 +124,16 @@ systemRealTime = choice
     , word8 0xFE *> pure ActiveSensing
     , word8 0xFF *> pure SystemReset ]
 
+systemExclusive :: Parser SystemExclusive
+systemExclusive = SystemExclusive
+    <$> (word8 0xF0 *> vendorId) 
+    <*> takeTill (`testBit` 7)
+
+vendorId :: Parser VendorId
+vendorId = longId <|> shortId
+    where longId  = VendorIdLong  <$> (word8 0x00 *> anyWord8) <*> anyWord8
+          shortId = VendorIdShort <$> anyWord8
+
 -- | Parse a 'Pitch', no check for bit 7 is performed!
 pitch :: Parser Pitch
 pitch = Pitch <$> anyWord8
