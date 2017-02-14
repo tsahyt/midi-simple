@@ -9,6 +9,7 @@ module Sound.MIDI
     -- * Decoding
     decodeMidi,
     decodeMidi1,
+    partitionRealtime,
 
     -- * Parser and Serializer
     --
@@ -47,7 +48,8 @@ encodeMidi1' :: MidiMessage -> BS.ByteString
 encodeMidi1' = encodeMidi' . Identity
 
 -- | Decode raw MIDI data from a strict 'ByteString'. Any incomplete data at the
--- beginning will be skipped!
+-- beginning will be skipped! This function assumes a normalized MIDI stream,
+-- i.e. one in which events are /not/ interrupted by real-time events!
 decodeMidi :: BS.ByteString -> Either String [MidiMessage]
 decodeMidi = A.parseOnly (P.skipToStatus *> some P.midiMessage)
 
@@ -55,6 +57,14 @@ decodeMidi = A.parseOnly (P.skipToStatus *> some P.midiMessage)
 -- incomplete data at the beginning will be skipped!
 decodeMidi1 :: BS.ByteString -> Either String MidiMessage
 decodeMidi1 = A.parseOnly (P.skipToStatus *> P.midiMessage)
+
+-- | Partition an event stream into real-time events and other messages. The
+-- first parameter returned will be the real-time events, the second element
+-- will be the rest of the stream. Note that this effectively normalizes the
+-- second element.
+partitionRealtime :: BS.ByteString -> (BS.ByteString, BS.ByteString)
+partitionRealtime = BS.partition isRT
+    where isRT x = x >= 0xF8 && x <= 0xFF
 
 midiParser :: A.Parser MidiMessage
 midiParser = P.midiMessage

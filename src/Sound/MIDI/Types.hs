@@ -24,6 +24,7 @@ module Sound.MIDI.Types
     mkChannel,
     Pitch (..),
     mkPitch,
+    middleC,
     Patch (..),
     mkPatch,
     Velocity (..),
@@ -160,6 +161,11 @@ newtype Pitch = Pitch { getPitch :: Word8 }
 
 mkPitch :: Integral a => a -> Pitch 
 mkPitch = Pitch . to7Bit
+
+-- | The middle C on a piano as defined by the MIDI specification. This can
+-- serve as a reference value for working with pitches.
+middleC :: Pitch
+middleC = Pitch 60
 
 newtype Velocity = Velocity { getVelocity :: Word8 }
     deriving (Eq, Show, Ord, Read)
