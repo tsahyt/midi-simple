@@ -4,16 +4,19 @@
 module Main where
 
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Builder as B
+import qualified Data.Attoparsec.ByteString as A
+import Data.ByteString.Lazy (toStrict)
 import Data.Word
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Test.Tasty.Hspec
-import Test.QuickCheck
-import Test.Hspec
 import Test.Hspec.Attoparsec
 
 import Sound.MIDI
 import Sound.MIDI.Types
+import qualified Sound.MIDI.Serialize as S
+import qualified Sound.MIDI.Parser as P
 
 main :: IO ()
 main = do
@@ -22,7 +25,13 @@ main = do
 
 tests :: TestTree
 tests = testGroup "QuickCheck"
-    [ testProperty "parse . serialize == id" $
+    [ testProperty "word14: parse . serialize == id" $
+          \(w16 :: Word16) ->
+              let w14  = to14Bit w16
+                  w14' = A.parseOnly P.anyWord14 . toStrict . B.toLazyByteString 
+                       . S.word14 $ w14
+               in Right w14 == w14'
+    , testProperty "parse . serialize == id" $
           \(msg :: MidiMessage) ->
               decodeMidi1 (encodeMidi1' msg) == Right msg
     , testProperty "parse . serialize == id (long)" $

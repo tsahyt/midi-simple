@@ -44,7 +44,7 @@ channelStatus p c = word8 $ p .|. getChannel c
 -- built as two 8 bit words with the 7th bit not set respectively.
 word14 :: Word16 -> Builder
 word14 v =
-    let l = fromIntegral $ v .&. 0x003f
+    let l = fromIntegral $ v .&. 0x007f
         m = fromIntegral $ unsafeShiftR (v .&. 0x3f80) 7
      in word8 l <> word8 m
 {-# INLINE word14 #-}

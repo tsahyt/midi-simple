@@ -47,7 +47,7 @@ test-suite midi-tests
   main-is:             Test.hs
   build-depends:       base >= 4.7 && < 5, midi-simple, tasty, tasty-hspec,
                        tasty-quickcheck, QuickCheck, generic-random, bytestring,
-                       hspec-attoparsec, hspec
+                       hspec-attoparsec, hspec, attoparsec
 
 source-repository head
   type:     git
