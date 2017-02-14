@@ -162,7 +162,7 @@ newtype Channel = Channel { getChannel :: Word8 }
     deriving (Eq, Show, Ord, Read)
 
 mkChannel :: Integral a => a -> Channel
-mkChannel = Channel . to7Bit
+mkChannel = Channel . to4Bit
 
 newtype Pitch = Pitch { getPitch :: Word8 }
     deriving (Eq, Show, Ord, Read)
@@ -179,7 +179,7 @@ newtype Velocity = Velocity { getVelocity :: Word8 }
     deriving (Eq, Show, Ord, Read)
 
 mkVelocity :: Integral a => a -> Velocity 
-mkVelocity = Velocity . to4Bit
+mkVelocity = Velocity . to7Bit
 
 newtype Touch = Touch { getTouch :: Word8 }
     deriving (Eq, Show, Ord, Read)
