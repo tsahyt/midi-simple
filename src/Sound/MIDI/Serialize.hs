@@ -7,8 +7,8 @@ import Data.Monoid
 import Data.Word
 import Data.Bits
 
-message :: ChannelVoice -> Builder
-message = \case
+channelVoice :: ChannelVoice -> Builder
+channelVoice = \case
     NoteOff c p v -> 
         channelStatus 0x80 c <> pitch p <> velocity v
     NoteOn c p v -> 
@@ -34,6 +34,28 @@ pitchbend v =
         m = fromIntegral $ v .&. 0x3f80
      in word8 l <> word8 m
 {-# INLINE pitchbend #-}
+
+channelMode :: ChannelMode -> Builder
+channelMode = \case
+    AllSoundOff c ->
+        channelStatus 0x0B c <> word8 0x78 <> word8 0x00
+    ResetAllControllers c ->
+        channelStatus 0x0B c <> word8 0x79 <> word8 0x00
+    LocalControl c b ->
+        channelStatus 0x0B c <> word8 0x7A <> bool' b
+    AllNotesOff c ->
+        channelStatus 0x0B c <> word8 0x7B <> word8 0x00
+    OmniOff c ->
+        channelStatus 0x0B c <> word8 0x7C <> word8 0x00
+    OmniOn c ->
+        channelStatus 0x0B c <> word8 0x7D <> word8 0x00
+    MonoOn c n ->
+        channelStatus 0x0B c <> word8 0x7E <> word8 n
+    PolyOn c ->
+        channelStatus 0x0B c <> word8 0x7F <> word8 0x00
+
+    where bool' True  = word8 0x7F
+          bool' False = word8 0x00
 
 pitch :: Pitch -> Builder
 pitch = word8 . getPitch

@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Sound.MIDI.Parser where
 
 import Control.Applicative
@@ -9,11 +10,11 @@ import qualified Data.ByteString as B
 
 import Prelude hiding (take)
 
-message :: Parser ChannelVoice
-message = choice [ noteOff, noteOn, aftertouch, controlChange, patchChange
-                 , channelPressure, pitchBend ]
+channelVoice :: Parser ChannelVoice
+channelVoice = choice [ noteOff, noteOn, aftertouch, controlChange, patchChange
+                      , channelPressure, pitchBend ]
 
-channelMessage :: Word8 -> (Word8 -> Parser ChannelVoice) -> Parser ChannelVoice
+channelMessage :: Word8 -> (Word8 -> Parser a) -> Parser a
 channelMessage header p = do
     status <- anyWord8
     let upper = unsafeShiftR status 4
@@ -51,6 +52,46 @@ pitchBend = channelMessage 0x0E $ \c ->
     where go x = let l = x `B.index` 0
                      m = x `B.index` 1
                   in unsafeShiftL (fromIntegral m) 7 + fromIntegral l
+
+channelMode :: Parser ChannelMode
+channelMode = choice [ allSoundOff, resetAllControllers, localControl
+                     , allNotesOff, omniOff, omniOn, monoOn, polyOn ]
+
+allSoundOff :: Parser ChannelMode
+allSoundOff = channelMessage 0x0B $ \c ->
+    pure (AllSoundOff (Channel c)) <* word8 0x78 <* word8 0x00
+
+resetAllControllers :: Parser ChannelMode
+resetAllControllers = channelMessage 0x0B $ \c ->
+    pure (ResetAllControllers (Channel c)) <* word8 0x79 <* word8 0x00
+
+localControl :: Parser ChannelMode
+localControl = channelMessage 0x0B $ \c ->
+    LocalControl (Channel c) <$> (word8 0x7A *> bool')
+    where bool' = anyWord8 >>= \case
+                      0x00 -> pure False
+                      0x7f -> pure True
+                      _    -> empty
+
+allNotesOff :: Parser ChannelMode
+allNotesOff = channelMessage 0x0B $ \c ->
+    pure (AllNotesOff (Channel c)) <* word8 0x7B <* word8 0x00
+
+omniOff :: Parser ChannelMode
+omniOff = channelMessage 0x0B $ \c ->
+    pure (OmniOff (Channel c)) <* word8 0x7C <* word8 0x00
+
+omniOn :: Parser ChannelMode
+omniOn = channelMessage 0x0B $ \c ->
+    pure (OmniOn (Channel c)) <* word8 0x7D <* word8 0x00
+
+monoOn :: Parser ChannelMode
+monoOn = channelMessage 0x0B $ \c ->
+    MonoOn (Channel c) <$> (word8 0x7E *> anyWord8)
+
+polyOn :: Parser ChannelMode
+polyOn = channelMessage 0x0B $ \c ->
+    pure (PolyOn (Channel c)) <* word8 0x7F <* word8 0x00
 
 -- | Parse a 'Pitch', no check for bit 7 is performed!
 pitch :: Parser Pitch

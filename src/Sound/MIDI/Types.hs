@@ -4,11 +4,14 @@ module Sound.MIDI.Types
 (
     -- * Basic MIDI types
     ChannelVoice (..),
+    ChannelMode (..),
 
     -- * Numeric MIDI data
     --
-    -- Only use the direct constructors when you can assure that the values fit
-    -- into 7 bits! In general you should prefer the smart constructors.
+    -- | Only use the direct constructors when you can assure that the values
+    -- fit into 7 bits! In general you should prefer the smart constructors. For
+    -- values outside of the 7 bit range, the numbers should generally wrap
+    -- around, but no guarantees are made!
     Channel (..),
     mkChannel,
     Pitch (..),
@@ -44,6 +47,16 @@ data ChannelVoice
     | ChannelPressure !Channel !Touch
     | PitchBend !Channel !Word16
     deriving (Eq, Show, Ord, Read, Generic)
+
+data ChannelMode
+    = AllSoundOff !Channel
+    | ResetAllControllers !Channel
+    | LocalControl !Channel !Bool
+    | AllNotesOff !Channel
+    | OmniOff !Channel
+    | OmniOn !Channel
+    | MonoOn !Channel !Word8
+    | PolyOn !Channel
 
 to7Bit :: Integral a => a -> Word8
 to7Bit = (.&. 0x7F) . fromIntegral
