@@ -41,6 +41,13 @@ executable midi-dump
   main-is:             MidiDump.hs
   default-language:    Haskell2010
 
+test-suite midi-tests
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Test.hs
+  build-depends:       base >= 4.7 && < 5, midi-simple, tasty, tasty-hspec,
+                       tasty-quickcheck, QuickCheck, generic-random, bytestring
+
 source-repository head
   type:     git
   location: https://github.com/tsahyt/midi-simple

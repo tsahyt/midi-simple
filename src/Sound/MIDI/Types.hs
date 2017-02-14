@@ -35,7 +35,11 @@ module Sound.MIDI.Types
     mkController,
     PositionPointer (..),
     mkPositionPointer,
-    toClocks
+    toClocks,
+
+    -- * Helper functions
+    to7Bit,
+    to14Bit
 )
 where
 
