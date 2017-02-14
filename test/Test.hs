@@ -200,10 +200,11 @@ instance Arbitrary SystemRealTime where
                          , ActiveSensing, SystemReset ]
 
 instance Arbitrary VendorId where
-    arbitrary = oneof [ VendorIdShort <$> (to7Bit <$> (arbitrary :: Gen Word8))
+    arbitrary = oneof [ VendorIdShort <$> (to7Bit' <$> (arbitrary :: Gen Word8))
                       , VendorIdLong  <$> (to7Bit <$> (arbitrary :: Gen Word8))
-                                      <*> (to7Bit <$> (arbitrary :: Gen Word8))
+                                      <*> (to7Bit' <$> (arbitrary :: Gen Word8))
                       ]
+        where to7Bit' x = if to7Bit x == 0 then 1 else to7Bit x
 
 instance Arbitrary Channel where
     arbitrary = mkChannel <$> (arbitrary :: Gen Word8)
@@ -219,9 +220,9 @@ instance Arbitrary Touch where
 
 instance Arbitrary Controller where
     arbitrary = do
-        x <- arbitrary :: Gen Word8
+        x <- to7Bit <$> (arbitrary :: Gen Word8)
         let x' = if x >= 0x78 && x <= 0x7F
-                 then 0x77
+                 then 0x00
                  else x
         pure $ mkController x'
 
