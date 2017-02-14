@@ -19,7 +19,7 @@ flag examples
 
 library
   hs-source-dirs:      src
-  ghc-options:         -Wall
+  ghc-options:         -Wall -O2
   exposed-modules:     Sound.MIDI
                        Sound.MIDI.Types
                        Sound.MIDI.Parser
@@ -48,6 +48,13 @@ test-suite midi-tests
   build-depends:       base >= 4.7 && < 5, midi-simple, tasty, tasty-hspec,
                        tasty-quickcheck, QuickCheck, generic-random, bytestring,
                        hspec-attoparsec, hspec, attoparsec
+
+benchmark midi-bench
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      bench
+  main-is:             Bench.hs
+  ghc-options:         -Wall -O2
+  build-depends:       base >= 4.7 && < 5, midi-simple, criterion, bytestring
 
 source-repository head
   type:     git
