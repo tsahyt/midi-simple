@@ -65,6 +65,15 @@ systemCommon = \case
     TuneRequest -> word8 0xF6
     EOX -> word8 0xF7
 
+systemRealTime :: SystemRealTime -> Builder
+systemRealTime = \case
+    TimingClock -> word8 0xF8
+    Start -> word8 0xFA
+    Continue -> word8 0xFB
+    Stop -> word8 0xFC
+    ActiveSensing -> word8 0xFE
+    SystemReset -> word8 0xFF
+
 pitch :: Pitch -> Builder
 pitch = word8 . getPitch
 {-# INLINE pitch #-}

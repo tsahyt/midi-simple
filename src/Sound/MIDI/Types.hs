@@ -6,6 +6,7 @@ module Sound.MIDI.Types
     ChannelVoice (..),
     ChannelMode (..),
     SystemCommon (..),
+    SystemRealTime (..),
 
     -- * Numeric MIDI data
     --
@@ -65,6 +66,7 @@ data ChannelMode
     | OmniOn !Channel
     | MonoOn !Channel !Word8
     | PolyOn !Channel
+    deriving (Eq, Show, Ord, Read, Generic)
 
 data SystemCommon
     = MTCQuarter !Word8
@@ -72,6 +74,16 @@ data SystemCommon
     | SongSelect !Word8
     | TuneRequest
     | EOX
+    deriving (Eq, Show, Ord, Read, Generic)
+
+data SystemRealTime
+    = TimingClock
+    | Start
+    | Continue
+    | Stop
+    | ActiveSensing
+    | SystemReset
+    deriving (Eq, Show, Ord, Read, Generic)
 
 to7Bit :: Integral a => a -> Word8
 to7Bit = (.&. 0x7F) . fromIntegral

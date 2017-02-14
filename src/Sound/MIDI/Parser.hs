@@ -115,6 +115,15 @@ tuneRequest = word8 0xF6 *> pure TuneRequest
 eox :: Parser SystemCommon
 eox = word8 0xF7 *> pure EOX
 
+systemRealTime :: Parser SystemRealTime
+systemRealTime = choice
+    [ word8 0xF8 *> pure TimingClock
+    , word8 0xFA *> pure Start
+    , word8 0xFB *> pure Continue
+    , word8 0xFC *> pure Stop
+    , word8 0xFE *> pure ActiveSensing
+    , word8 0xFF *> pure SystemReset ]
+
 -- | Parse a 'Pitch', no check for bit 7 is performed!
 pitch :: Parser Pitch
 pitch = Pitch <$> anyWord8
