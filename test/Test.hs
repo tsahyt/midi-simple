@@ -37,8 +37,15 @@ tests = testGroup "QuickCheck"
     , testProperty "parse . serialize == id (long)" $
           \(msg :: NonEmptyList MidiMessage) ->
               let msg' = getNonEmpty msg
-               in decodeMidi (encodeMidi' msg') == Right msg'
+               in fmap mergeEOX (decodeMidi (encodeMidi' msg')) == Right msg'
     ]
+
+-- | The parser will separate EOXs by design, hence they need to be merged back
+-- into the exclusive message during property testing.
+mergeEOX :: [MidiMessage] -> [MidiMessage]
+mergeEOX [] = []
+mergeEOX (x@(SystemExclusive _) : SystemCommon EOX : xs) = x : mergeEOX xs
+mergeEOX (x:xs) = x : mergeEOX xs
 
 specTests :: IO TestTree
 specTests = testSpec "Hspec" . sequence_ . map go $ specCases
@@ -211,7 +218,12 @@ instance Arbitrary Touch where
     arbitrary = mkTouch <$> (arbitrary :: Gen Word8)
 
 instance Arbitrary Controller where
-    arbitrary = mkController <$> (arbitrary :: Gen Word8)
+    arbitrary = do
+        x <- arbitrary :: Gen Word8
+        let x' = if x >= 0x78 && x <= 0x7F
+                 then 0x77
+                 else x
+        pure $ mkController x'
 
 instance Arbitrary Patch where
     arbitrary = mkPatch <$> (arbitrary :: Gen Word8)
