@@ -76,11 +76,11 @@ channelMode = choice [ allSoundOff, resetAllControllers, localControl
 
 allSoundOff :: Parser ChannelMode
 allSoundOff = channelMessage 0x0B $ \c ->
-    pure (AllSoundOff (Channel c)) <* word8 0x78 <* word8 0x00
+    AllSoundOff (Channel c) <$ word8 0x78 <* word8 0x00
 
 resetAllControllers :: Parser ChannelMode
 resetAllControllers = channelMessage 0x0B $ \c ->
-    pure (ResetAllControllers (Channel c)) <* word8 0x79 <* word8 0x00
+    ResetAllControllers (Channel c) <$ word8 0x79 <* word8 0x00
 
 localControl :: Parser ChannelMode
 localControl = channelMessage 0x0B $ \c ->
@@ -92,15 +92,15 @@ localControl = channelMessage 0x0B $ \c ->
 
 allNotesOff :: Parser ChannelMode
 allNotesOff = channelMessage 0x0B $ \c ->
-    pure (AllNotesOff (Channel c)) <* word8 0x7B <* word8 0x00
+    AllNotesOff (Channel c) <$ word8 0x7B <* word8 0x00
 
 omniOff :: Parser ChannelMode
 omniOff = channelMessage 0x0B $ \c ->
-    pure (OmniOff (Channel c)) <* word8 0x7C <* word8 0x00
+    OmniOff (Channel c) <$ word8 0x7C <* word8 0x00
 
 omniOn :: Parser ChannelMode
 omniOn = channelMessage 0x0B $ \c ->
-    pure (OmniOn (Channel c)) <* word8 0x7D <* word8 0x00
+    OmniOn (Channel c) <$ word8 0x7D <* word8 0x00
 
 monoOn :: Parser ChannelMode
 monoOn = channelMessage 0x0B $ \c ->
@@ -108,7 +108,7 @@ monoOn = channelMessage 0x0B $ \c ->
 
 polyOn :: Parser ChannelMode
 polyOn = channelMessage 0x0B $ \c ->
-    pure (PolyOn (Channel c)) <* word8 0x7F <* word8 0x00
+    PolyOn (Channel c) <$ word8 0x7F <* word8 0x00
 
 systemCommon :: Parser SystemCommon
 systemCommon = choice [ mtcQuarter, songPosition, songSelect, tuneRequest
@@ -124,19 +124,19 @@ songSelect :: Parser SystemCommon
 songSelect = SongSelect <$> (word8 0xF3 *> anyWord8)
 
 tuneRequest :: Parser SystemCommon
-tuneRequest = word8 0xF6 *> pure TuneRequest
+tuneRequest = TuneRequest <$ word8 0xF6
 
 eox :: Parser SystemCommon
-eox = word8 0xF7 *> pure EOX
+eox = EOX <$ word8 0xF7
 
 systemRealTime :: Parser SystemRealTime
 systemRealTime = choice
-    [ word8 0xF8 *> pure TimingClock
-    , word8 0xFA *> pure Start
-    , word8 0xFB *> pure Continue
-    , word8 0xFC *> pure Stop
-    , word8 0xFE *> pure ActiveSensing
-    , word8 0xFF *> pure SystemReset ]
+    [ TimingClock <$ word8 0xF8
+    , Start <$ word8 0xFA
+    , Continue <$ word8 0xFB
+    , Stop <$ word8 0xFC
+    , ActiveSensing <$ word8 0xFE
+    , SystemReset <$ word8 0xFF ]
 
 systemExclusive :: Parser SystemExclusive
 systemExclusive = Exclusive
