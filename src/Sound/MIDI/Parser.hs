@@ -14,19 +14,31 @@ import qualified Data.ByteString as B
 import Prelude hiding (take)
 
 midiMessage :: Parser MidiMessage
-midiMessage = choice 
-    [ ChannelMode <$> channelMode
-    , ChannelVoice <$> channelVoice
-    , SystemCommon <$> systemCommon
-    , SystemRealTime <$> systemRealTime
-    , SystemExclusive <$> systemExclusive ]
+midiMessage = go =<< peekWord8'
+    where go x = case x .&. 0xF0 of
+                     0xB0 -> ChannelMode <$> channelMode 
+                         <|> ChannelVoice <$> channelVoice
+                     0xF0 -> system x
+                     _    -> ChannelVoice <$> channelVoice
+          system x
+              | x == 0xF0 = SystemExclusive <$> systemExclusive
+              | x <= 0xF7 = SystemCommon <$> systemCommon
+              | otherwise = SystemRealTime <$> systemRealTime
 
 skipToStatus :: Parser ()
 skipToStatus = skipWhile (not . flip testBit 7)
 
 channelVoice :: Parser ChannelVoice
-channelVoice = choice [ noteOff, noteOn, aftertouch, controlChange, patchChange
-                      , channelPressure, pitchBend ]
+channelVoice = go =<< peekWord8'
+    where go x = case x .&. 0xF0 of
+                     0x80 -> noteOff
+                     0x90 -> noteOn
+                     0xA0 -> aftertouch
+                     0xB0 -> controlChange
+                     0xC0 -> patchChange
+                     0xD0 -> channelPressure
+                     0xE0 -> pitchBend
+                     _    -> empty
 
 channelMessage :: Word8 -> (Word8 -> Parser a) -> Parser a
 channelMessage header p = do
@@ -71,48 +83,30 @@ anyWord14 = go <$> take 2
                   in unsafeShiftL (fromIntegral m) 7 + fromIntegral l
 
 channelMode :: Parser ChannelMode
-channelMode = choice [ allSoundOff, resetAllControllers, localControl
-                     , allNotesOff, omniOff, omniOn, monoOn, polyOn ]
+channelMode = channelMessage 0x0B $ \c -> anyWord8 >>= \case
+    0x78 -> AllSoundOff (Channel c) <$ word8 0x00
+    0x79 -> ResetAllControllers (Channel c) <$ word8 0x00
+    0x7A -> LocalControl (Channel c) <$> bool'
+    0x7B -> AllNotesOff (Channel c) <$ word8 0x00
+    0x7C -> OmniOff (Channel c) <$ word8 0x00
+    0x7D -> OmniOn (Channel c) <$ word8 0x00
+    0x7E -> MonoOn (Channel c) <$> anyWord8
+    0x7F -> PolyOn (Channel c) <$ word8 0x00
+    _    -> empty
 
-allSoundOff :: Parser ChannelMode
-allSoundOff = channelMessage 0x0B $ \c ->
-    AllSoundOff (Channel c) <$ word8 0x78 <* word8 0x00
-
-resetAllControllers :: Parser ChannelMode
-resetAllControllers = channelMessage 0x0B $ \c ->
-    ResetAllControllers (Channel c) <$ word8 0x79 <* word8 0x00
-
-localControl :: Parser ChannelMode
-localControl = channelMessage 0x0B $ \c ->
-    LocalControl (Channel c) <$> (word8 0x7A *> bool')
     where bool' = anyWord8 >>= \case
                       0x00 -> pure False
                       0x7f -> pure True
                       _    -> empty
 
-allNotesOff :: Parser ChannelMode
-allNotesOff = channelMessage 0x0B $ \c ->
-    AllNotesOff (Channel c) <$ word8 0x7B <* word8 0x00
-
-omniOff :: Parser ChannelMode
-omniOff = channelMessage 0x0B $ \c ->
-    OmniOff (Channel c) <$ word8 0x7C <* word8 0x00
-
-omniOn :: Parser ChannelMode
-omniOn = channelMessage 0x0B $ \c ->
-    OmniOn (Channel c) <$ word8 0x7D <* word8 0x00
-
-monoOn :: Parser ChannelMode
-monoOn = channelMessage 0x0B $ \c ->
-    MonoOn (Channel c) <$> (word8 0x7E *> anyWord8)
-
-polyOn :: Parser ChannelMode
-polyOn = channelMessage 0x0B $ \c ->
-    PolyOn (Channel c) <$ word8 0x7F <* word8 0x00
-
 systemCommon :: Parser SystemCommon
-systemCommon = choice [ mtcQuarter, songPosition, songSelect, tuneRequest
-                      , eox ]
+systemCommon = peekWord8' >>= \case
+    0xF1 -> mtcQuarter
+    0xF2 -> songPosition
+    0xF3 -> songSelect
+    0xF6 -> tuneRequest
+    0xF7 -> eox
+    _    -> empty
 
 mtcQuarter :: Parser SystemCommon
 mtcQuarter = MTCQuarter <$> (word8 0xF1 *> anyWord8) 
@@ -130,13 +124,14 @@ eox :: Parser SystemCommon
 eox = EOX <$ word8 0xF7
 
 systemRealTime :: Parser SystemRealTime
-systemRealTime = choice
-    [ TimingClock <$ word8 0xF8
-    , Start <$ word8 0xFA
-    , Continue <$ word8 0xFB
-    , Stop <$ word8 0xFC
-    , ActiveSensing <$ word8 0xFE
-    , SystemReset <$ word8 0xFF ]
+systemRealTime = anyWord8 >>= \case
+    0xF8 -> pure TimingClock 
+    0xFA -> pure Start 
+    0xFB -> pure Continue 
+    0xFC -> pure Stop 
+    0xFE -> pure ActiveSensing 
+    0xFF -> pure SystemReset 
+    _    -> empty
 
 systemExclusive :: Parser SystemExclusive
 systemExclusive = Exclusive
