@@ -43,7 +43,8 @@ executable midi-dump
 
 executable re-encode
   if flag(examples)
-      build-depends:   base >= 4.7 && < 5, midi-simple, bytestring
+      build-depends:   base >= 4.7 && < 5, midi-simple, pipes, 
+                       pipes-bytestring, pipes-attoparsec
   else
       buildable:       False
   hs-source-dirs:      example

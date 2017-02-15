@@ -1,15 +1,21 @@
 module Main where
 
 import Sound.MIDI
-import Data.ByteString as B
-import Data.ByteString.Lazy as L
-
+import Pipes
+import qualified Pipes.Prelude as P
+import qualified Pipes.ByteString as B
+import Pipes.Attoparsec
+import System.IO
 import System.Environment
 
 main :: IO ()
 main = do
     [fp] <- getArgs
-    file <- B.readFile fp
-    case decodeMidi file of
-        Right x -> let y = encodeMidi x in L.writeFile (fp ++ "-re") y
-        Left  e -> print e
+    fd   <- openFile fp ReadMode
+    fdo  <- openFile (fp ++ "-re") WriteMode
+
+    runEffect $
+        void (parsed midiParser (B.fromHandle fd)) 
+            >-> P.map encodeMidi1' >-> B.toHandle fdo
+
+    return ()
