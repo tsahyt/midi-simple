@@ -37,10 +37,12 @@ import qualified Sound.MIDI.Serialize as S
 -- | Encode some collection of 'MidiMessage's to a lazy 'BL.ByteString'
 encodeMidi :: Foldable t => t MidiMessage -> BL.ByteString
 encodeMidi = toLazyByteString . foldMap S.midiMessage
+{-# SPECIALISE encodeMidi :: [MidiMessage] -> BL.ByteString #-}
 
 -- | Strict version of 'encodeMidi'
 encodeMidi' :: Foldable t => t MidiMessage -> BS.ByteString
 encodeMidi' = BL.toStrict . encodeMidi
+{-# SPECIALISE encodeMidi' :: [MidiMessage] -> BS.ByteString #-}
 
 -- | Encode a single message to a lazy 'BL.ByteString'
 encodeMidi1 :: MidiMessage -> BL.ByteString
